@@ -1,0 +1,3 @@
+/target/
+# Cargo.lock is intentionally excluded for library crates
+Cargo.lock
