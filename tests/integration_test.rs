@@ -180,6 +180,7 @@ mod custom_event_tests {
 
     #[derive(Debug, Clone, Serialize)]
     #[serde(tag = "type")]
+    #[allow(dead_code)] // Complete variant exists for API completeness but isn't constructed in tests
     enum CustomEvent {
         Progress { percent: u32 },
         Complete { result: String },
