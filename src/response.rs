@@ -196,4 +196,41 @@ mod tests {
         flag.store(true, Ordering::Relaxed);
         assert!(signal.is_aborted());
     }
+
+    #[test]
+    fn test_abort_signal_clone_shares_state() {
+        let flag = Arc::new(AtomicBool::new(false));
+        let signal1 = AbortSignal {
+            aborted: flag.clone(),
+        };
+        let signal2 = AbortSignal {
+            aborted: flag.clone(),
+        };
+        
+        // Initially both should show not aborted
+        assert!(!signal1.is_aborted());
+        assert!(!signal2.is_aborted());
+        
+        // Abort via flag
+        flag.store(true, Ordering::Relaxed);
+        
+        // Both should now show aborted (shared state)
+        assert!(signal1.is_aborted());
+        assert!(signal2.is_aborted());
+    }
+
+    #[test]
+    fn test_abort_signal_multiple_aborts() {
+        let flag = Arc::new(AtomicBool::new(false));
+        let signal = AbortSignal {
+            aborted: flag.clone(),
+        };
+        
+        // Abort multiple times should be safe
+        flag.store(true, Ordering::Relaxed);
+        flag.store(true, Ordering::Relaxed);
+        flag.store(true, Ordering::Relaxed);
+        
+        assert!(signal.is_aborted());
+    }
 }
