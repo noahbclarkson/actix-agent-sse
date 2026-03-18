@@ -191,4 +191,38 @@ mod tests {
             _ => panic!("Wrong event type"),
         }
     }
+
+    #[test]
+    fn test_relay_error_display() {
+        assert_eq!(RelayError::Disconnected.to_string(), "Client disconnected");
+        assert_eq!(RelayError::ChannelFull.to_string(), "Channel full");
+    }
+
+    #[test]
+    fn test_relay_error_clone() {
+        let err = RelayError::Disconnected;
+        let err2 = err.clone();
+        assert_eq!(err.to_string(), err2.to_string());
+    }
+
+    #[tokio::test]
+    async fn test_relay_abort_signal_not_set_initially() {
+        let (relay, _rx) = SseRelay::<AgentEvent>::new(32);
+        assert!(!relay.is_aborted(), "Abort signal should not be set initially");
+    }
+
+    #[tokio::test]
+    async fn test_relay_sender_clone() {
+        let (relay, mut rx) = SseRelay::<AgentEvent>::new(32);
+        let sender = relay.sender();
+
+        // Send using cloned sender
+        sender.send(AgentEvent::text("from clone")).await.unwrap();
+
+        let event = rx.recv().await.unwrap();
+        match event {
+            AgentEvent::TextDelta { content } => assert_eq!(content, "from clone"),
+            _ => panic!("Wrong event type"),
+        }
+    }
 }
